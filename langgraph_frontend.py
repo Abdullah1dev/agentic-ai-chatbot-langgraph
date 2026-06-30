@@ -7,8 +7,6 @@ import uuid
 user_input = st.chat_input("Type Here")
 
 
-#utitlity funtion
-
 def generate_threadid():
     thread_id = uuid.uuid4()
     return thread_id
@@ -16,8 +14,17 @@ def generate_threadid():
 
 def reset_history():
     st.session_state['thread_id'] = generate_threadid()
+    add_thread(st.session_state['thread_id'])
     st.session_state['message_history'] = []
     
+
+def add_thread(thread_id):
+    if thread_id not in st.session_state['chat_threads']:
+        st.session_state['chat_threads'].append(thread_id)
+
+
+def load_conversation(thread_id):
+    return workflow.get_state(config =  {'configurable' : {'thread_id' : thread_id}} ).values['messages']       
     
     
 
@@ -25,8 +32,15 @@ if 'message_history' not in st.session_state:
     st.session_state['message_history'] = []
 
 
-if 'thread_id' not in st.session_state:
+if  'thread_id' not in st.session_state:
     st.session_state['thread_id'] = generate_threadid()
+
+
+if 'chat_threads' not in st.session_state:
+    st.session_state['chat_threads'] = []
+    
+
+add_thread(st.session_state['thread_id'])
 
 
 
@@ -36,7 +50,6 @@ config = {'configurable' : {'thread_id' : st.session_state['thread_id']}}
 
     
     
-    
 st.sidebar.title('LangGraph Chatbot')
 
 if st.sidebar.button('New Chat'):
@@ -44,11 +57,26 @@ if st.sidebar.button('New Chat'):
 
 st.sidebar.header('My Conversations')
 
-st.sidebar.text(st.session_state['thread_id'])
-
-
-
-
+for thread_id in st.session_state['chat_threads']:
+    if st.sidebar.button(str(thread_id)):
+        st.session_state['thread_id'] = thread_id
+        messages = load_conversation(thread_id)
+        
+        
+        temp_messages = []
+        
+        for msg in messages:
+            if isinstance(msg , HumanMessage):
+                role = 'user'
+            else:
+                role = 'assistant'
+            
+            temp_messages.append({'role' : role , 'content' : msg.content})
+        
+        st.session_state['message_history'] = temp_messages
+        
+    
+    
 
 for message in st.session_state['message_history']:
     with st.chat_message(message['role']):
@@ -63,11 +91,7 @@ if user_input:
     with st.chat_message("user"):
         st.markdown(user_input)
     
-    
-    
-    
 
-    
     
     
     with st.chat_message('assistant'):
