@@ -10,7 +10,6 @@ import sqlite3
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_chroma import chorma
 from langchain_community.vectorstores import FAISS
 
 
@@ -27,13 +26,53 @@ model = ChatOpenAI(
      
 )
 
+embeddings = HuggingFaceEmbeddings(
+    model_name="BAAI/bge-small-en-v1.5"
+)
+
 def initialize_rag(uploaded_file):
-    pass
+    os.makedirs("temp/" , exist_ok=True)
+    
+    try:
+        
+        pdf_path = os.path.join("temp/" , uploaded_file.name)
+         
+        with open(pdf_path , 'wb') as f:
+            f.write(uploaded_file.getvalue())
+            
+        
+        loader = PyPDFLoader(pdf_path)
+        
+        documents = loader.load()
+        
+        text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size = 500,
+        chunk_overlap = 100
+        )
+        
+        chunks = text_splitter.split_documents(documents)
+        
+        vector_store = FAISS.from_documents(chunks , embeddings)
+        
+        retriever = vector_store.as_retriever(
+        search_type = 'similarity',
+        search_kwargs = {"k" : 4}
+        
+        )
+        if os.path.exists(pdf_path):
+            os.remove(pdf_path)
+            
+        
+        
+        return retriever 
+    
+    except Exception as e:
+        raise e
+    
+    
+
 
     
-    
-    
-
 
 
 class ChatState(TypedDict):
