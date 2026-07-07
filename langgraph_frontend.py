@@ -1,5 +1,5 @@
 import streamlit as st
-from backend import workflow , retrieve_all_threads
+from my_backend import workflow , retrieve_all_threads ,  initialize_rag , set_retriever
 from langchain_core.messages import HumanMessage
 import uuid
 
@@ -40,6 +40,14 @@ if  'thread_id' not in st.session_state:
 if 'chat_threads' not in st.session_state:
     st.session_state['chat_threads'] =  retrieve_all_threads()
     
+if 'retriever' not in st.session_state:
+    st.session_state['retriever'] = None
+    
+if "uploaded_pdf_name" not in st.session_state:
+    st.session_state["uploaded_pdf_name"] = None
+    
+    
+    
     
     
 
@@ -69,10 +77,28 @@ uploaded_file  = st.sidebar.file_uploader(
     
 )
 
+if uploaded_file:
+
+    if st.session_state["uploaded_pdf_name"] != uploaded_file.name:
+
+        retriever = initialize_rag(uploaded_file)
+
+        st.session_state["retriever"] = retriever
+        st.session_state["uploaded_pdf_name"] = uploaded_file.name
+
+        set_retriever(retriever)
+
+        st.success("PDF uploaded successfully!")
+
+
+
+
 if st.sidebar.button('New Chat'):
     reset_history()
 
 st.sidebar.header('My Conversations')
+
+
 
 for thread_id in st.session_state['chat_threads']:
     

@@ -11,6 +11,12 @@ from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
+from langchain_core.tools import tool
+from langgraph.prebuilt import ToolNode
+from langgraph.prebuilt import tools_condition
+
+
+
 
 
 
@@ -26,9 +32,17 @@ model = ChatOpenAI(
      
 )
 
+
 embeddings = HuggingFaceEmbeddings(
     model_name="BAAI/bge-small-en-v1.5"
 )
+
+retriever = None
+
+def set_retriever(new_retriever):
+    global retriever
+    retriever = new_retriever
+    
 
 def initialize_rag(uploaded_file):
     os.makedirs("temp/" , exist_ok=True)
@@ -72,6 +86,35 @@ def initialize_rag(uploaded_file):
     
 
 
+@tool
+def rag_tool(query : str) -> str:
+    """
+    Use the uploaded pdf and return relevant information to answer the user question
+    Use this tool ONLY when the user is asking questions about the uploaded PDF or document.
+    
+    """
+    if retriever  is None:
+        return "No document is currently available for retrievel"
+    
+    
+    result = retriever.invoke(query)
+    
+    context = "\n\n".join(doc.page_content for doc in result)
+    
+    return context
+    
+    
+    
+
+tools = [rag_tool]
+model_with_tools = model.bind_tools(tools)
+
+tool_node = ToolNode(tools)
+
+
+
+
+    
     
 
 
@@ -83,7 +126,7 @@ class ChatState(TypedDict):
 def chatnode(state : ChatState):
     messages = state["messages"]
     
-    response = model.invoke(messages)
+    response = model_with_tools.invoke(messages)
     
     return {'messages' : [response]}
 
@@ -96,12 +139,14 @@ checkpointer = SqliteSaver(conn = conn)
 graph = StateGraph(ChatState)
 
 graph.add_node('chatnode' , chatnode)
+graph.add_node('tools' , tool_node)
 
 graph.add_edge(START , 'chatnode')
-graph.add_edge('chatnode' , END)
+graph.add_conditional_edges("chatnode" , tools_condition)
+graph.add_edge("tools", "chatnode")
 
 workflow = graph.compile(checkpointer = checkpointer)
-print("Graph Compiled")
+
 
 
 def retrieve_all_threads():
