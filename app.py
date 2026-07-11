@@ -1,5 +1,5 @@
 import streamlit as st
-from my_backend import workflow , retrieve_all_threads ,  initialize_rag , set_retriever
+from src.graph import workflow , retrieve_all_threads ,  initialize_rag , set_retriever
 from langchain_core.messages import HumanMessage
 import uuid
 
@@ -25,9 +25,9 @@ def add_thread(thread_id):
 
 
 def load_conversation(thread_id):
-    return workflow.get_state(config =  {'configurable' : {'thread_id' : thread_id}} ).values['messages']       
+    state =  workflow.get_state(config =  {'configurable' : {'thread_id' : thread_id}} )      
     
-    
+    return state.values.get("messages" , [])
 
 if 'message_history' not in st.session_state:
     st.session_state['message_history'] = []
