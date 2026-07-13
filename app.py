@@ -35,6 +35,8 @@ def load_conversation(thread_id):
     
     return state.values.get("messages" , [])
 
+
+
 if 'message_history' not in st.session_state:
     st.session_state['message_history'] = []
 
@@ -53,7 +55,13 @@ if "uploaded_pdf_name" not in st.session_state:
     st.session_state["uploaded_pdf_name"] = None
     
     
-    
+
+if "waiting_for_approval" not in st.session_state:
+    st.session_state.waiting_for_approval = False
+
+
+if "approval_config" not in st.session_state:
+    st.session_state.approval_config = None
     
     
 
@@ -139,6 +147,25 @@ for thread_id in st.session_state['chat_threads']:
 for message in st.session_state['message_history']:
     with st.chat_message(message['role']):
         st.text(message['content'])
+        
+
+def is_action_required(user_input : str) -> bool:
+    """
+    Returns True if the request is an action that should not be streamed.
+    """
+    
+    action_keywords = [
+        "delete conversation",
+        "delete this conversation",
+        "remove conversation",
+        "erase conversation",
+    ]
+    
+    user_input = user_input.lower()
+    
+    
+    return any(keyword in user_input for keyword in action_keywords)
+
         
         
 
