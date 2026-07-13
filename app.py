@@ -80,12 +80,12 @@ config = {
     
     }
 
-if st.button('Resume'):
+if st.button("Resume"):
     workflow.invoke(
         Command(resume = True),
-        config=config
-        
+        config = config
     )
+
 
 
     
@@ -178,10 +178,16 @@ if user_input:
         st.markdown(user_input)
     
 
-    
-    
-    with st.chat_message('assistant'):
-        ai_message = st.write_stream(
+    if is_action_required(user_input):
+        response = workflow.invoke(
+            {"messages" : [HumanMessage(content=user_input)]},
+            config=config
+            
+            
+        )
+    else:
+        with st.chat_message('assistant'):
+            ai_message = st.write_stream(
             message_chunk.content for message_chunk , metadata in workflow.stream(
             {'messages' : [HumanMessage(content=user_input)]},
             config = config,
@@ -189,4 +195,8 @@ if user_input:
         )
         )
         
-    st.session_state['message_history'].append({'role' : 'assistant' , 'content' : ai_message})
+        st.session_state['message_history'].append({'role' : 'assistant' , 'content' : ai_message})
+        
+        
+    
+    
