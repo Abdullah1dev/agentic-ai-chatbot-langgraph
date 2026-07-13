@@ -6,6 +6,9 @@ from langgraph.types import interrupt
 
 
 
+
+
+
 @tool
 def rag_tool(query : str) -> str:
     
@@ -35,8 +38,10 @@ def  delete_conversation() -> str:
     
     
     """
+    
     Delete a conversation using its thread ID.
     This tool should only be used when the user explicitly requests to delete a conversation.
+    
     """
     
     approval = interrupt(
@@ -52,10 +57,4 @@ def  delete_conversation() -> str:
     return "Delete tool executed"
 
 
-
-    
-    
-
 tools = [rag_tool , delete_conversation]
-
-

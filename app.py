@@ -2,6 +2,10 @@ import streamlit as st
 from src.graph import workflow , retrieve_all_threads ,  initialize_rag , set_retriever
 from langchain_core.messages import HumanMessage
 import uuid
+from langgraph.types import Command
+
+
+    
 
 
 
@@ -22,6 +26,8 @@ def reset_history():
 def add_thread(thread_id):
     if thread_id not in st.session_state['chat_threads']:
         st.session_state['chat_threads'].append(thread_id)
+        
+
 
 
 def load_conversation(thread_id):
@@ -65,6 +71,13 @@ config = {
     "run_name" : "chatTurn"
     
     }
+
+if st.button('Resume'):
+    workflow.invoke(
+        Command(resume = True),
+        config=config
+        
+    )
 
 
     
