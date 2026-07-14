@@ -21,7 +21,11 @@ def retrieve_all_threads():
 
 
 def delete_thread(thread_id : str):
+    print("Inside delete_thread")
+
     checkpointer.delete_thread(thread_id)
+
+    print("Finished delete_thread")
     
     
         

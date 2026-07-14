@@ -3,6 +3,11 @@ from langgraph.prebuilt import ToolNode
 from langgraph.prebuilt import tools_condition
 from src.rag import retriever , set_retriever
 from langgraph.types import interrupt
+from typing import Annotated
+from langgraph.prebuilt import InjectedState
+from langchain_core.runnables import RunnableConfig
+from src.memory import delete_thread
+from langchain_core.tools import InjectedToolArg
 
 
 
@@ -34,7 +39,9 @@ def rag_tool(query : str) -> str:
     
 
 @tool
-def  delete_conversation() -> str:
+def  delete_conversation(
+    config: Annotated[RunnableConfig, InjectedToolArg]
+    ) -> str:
     
     
     """
@@ -48,13 +55,17 @@ def  delete_conversation() -> str:
         "Do you reallly want to Delete this conversation??"
         
     )
+    if approval:
+           thread_id = config["configurable"]["thread_id"]
+           print("Deleting thread:", thread_id)
+
+           delete_thread(thread_id)
+
+           print("Thread deleted")
+
+           return "Conversation deleted Successfully"
+
     
-    print("Approval recieved" , approval)
-    
-    
-    
-    
-    return "Delete tool executed"
 
 
 tools = [rag_tool , delete_conversation]

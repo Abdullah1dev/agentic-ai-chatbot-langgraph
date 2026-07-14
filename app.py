@@ -176,6 +176,11 @@ if st.session_state.waiting_for_approval:
                 config = st.session_state.approval_config 
                 
             )
+            st.session_state["chat_threads"] = retrieve_all_threads()
+            st.session_state["message_history"] = []
+            st.session_state["thread_id"] = generate_threadid()
+
+
             
             st.session_state.waiting_for_approval = False
             st.session_state.approval_config = None
