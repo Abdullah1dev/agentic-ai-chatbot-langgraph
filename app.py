@@ -1,8 +1,8 @@
 import streamlit as st
 from src.graph import workflow , retrieve_all_threads ,  initialize_rag , set_retriever
 from langchain_core.messages import HumanMessage
-import uuid
 from langgraph.types import Command
+from src.helpers import generate_threadid
 
 
     
@@ -12,9 +12,6 @@ from langgraph.types import Command
 user_input = st.chat_input("Type Here")
 
 
-def generate_threadid():
-    thread_id = uuid.uuid4()
-    return thread_id
 
 
 def reset_history():
@@ -236,7 +233,3 @@ if user_input:
         )
         
         st.session_state['message_history'].append({'role' : 'assistant' , 'content' : ai_message})
-        
-        
-    
-    
