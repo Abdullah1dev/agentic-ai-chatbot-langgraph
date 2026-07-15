@@ -213,11 +213,7 @@ OPENAI_BASE_URL=https://openrouter.ai/api/v1
 
 ---
 
-# 📸 Demo
 
-*(Add screenshots or GIFs here.)*
-
----
 
 # 👨‍💻 Author
 
